@@ -21,3 +21,7 @@ sudo apt-get install libopenjp2-7 (System-wide)
 
 Add user to SUDO so that the python script controlling the switches can be executed without SUDO:
 sudo adduser $USER gpio
+
+LED Control:
+Add the following line to the config.txt file in the general section at the bottom (/boot/firmware/config.txt):
+dtoverlay=pwm-2chan
