@@ -1,0 +1,20 @@
+sudo apt-get update
+sudo apt-get upgrade
+sudo reboot
+enable_uart=1
+dtparam=spi=on
+dtoverlay=mcp251xfd,spi0-0,interrupt=25
+
+sudo raspi-config -> Interfaces:
+Enable I2C
+Enable Serial
+
+sudo nano /boot/firmware/cmdline.txt and remove the console serial entry (Otherwise the LIN logic won't work properly)
+                                                                          
+sudo reboot
+
+Check that the tty interface is enabled: ls -l /dev/ttyS0
+
+On the project:
+pip install luma.oled Pillow
+sudo apt-get install libopenjp2-7 (System-wide)
