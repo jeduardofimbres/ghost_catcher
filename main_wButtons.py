@@ -1,18 +1,15 @@
+from gpiozero import Button
+from signal import pause
 import serial
 import time
 import threading
 import sys
-from gpiozero import Button
-from signal import pause
+
 
 # Publisher frame (ID 0x26) data definitions:
 DEFAULT_DATA = bytearray([0xF8, 0x88, 0xFF, 0xFF])
 DATA_UP = bytearray([0xF8, 0xA8, 0xFF, 0xFF])  # Clock-wise
 DATA_DW = bytearray([0xF8, 0x98, 0xFF, 0xFF])  # Counter-clock-wise
-
-# Define the GPIO pins for Up and Down
-up_button = Button(23, pull_up=True, bounce_time=0.2)
-down_button = Button(22, pull_up=True, bounce_time=0.2)
 
 # Global variable to hold the current publisher data
 current_data = DEFAULT_DATA
@@ -63,20 +60,20 @@ class PiCANFD_LIN:
         self.ser.close()
 
     # Define callback functions for button presses
-    def on_up_pressed():
+    def on_up_pressed(self):
         print("Up pressed!")
         update_publisher_data(DATA_UP)
 
-    def on_down_pressed():
+    def on_down_pressed(self):
         print("Down pressed!")
         update_publisher_data(DATA_DW)
 
     # Define callback functions for when the button is released
-    def on_up_released():
+    def on_up_released(self):
         print("Up released!")
         update_publisher_data(DEFAULT_DATA)
 
-    def on_down_released():
+    def on_down_released(self):
         print("Down released!")
         update_publisher_data(DEFAULT_DATA)
 
@@ -100,10 +97,15 @@ def publisher_scheduler():
     """
     while True:
         device.transmit_frame(0x26, current_data)
+        #print(f"Transmitted data: {current_data}")
         time.sleep(0.02)
 
 def main():
     global device
+
+    # Define the GPIO pins for Up and Down
+    up_button = Button(23, pull_up=True, bounce_time=0.2)
+    down_button = Button(22, pull_up=True, bounce_time=0.2)
 
     # Create an instance of the PiCANFD LIN controller
     device = PiCANFD_LIN(port="/dev/ttyS0", baudrate=115200)
@@ -119,18 +121,6 @@ def main():
     # Start the publisher scheduler thread (sending frame every 20ms)
     pub_thread = threading.Thread(target=publisher_scheduler, daemon=True)
     pub_thread.start()
-
-    # Continue sending the frame for the specified duration
-    #time.sleep(duration)
-
-    # Revert to default data after duration
-    #update_publisher_data(DEFAULT_DATA)
-    #print(f"Duration of {duration} seconds expired, reverting to default frame data.")
-    
-    # Give some time for the default data to be transmitted
-    #time.sleep(1)
-    #device.close()
-    #print("Exiting.")
 
     print("Waiting for button presses. Press Ctrl+C to exit.")
     pause()  # Keeps the program running and listening for events
